@@ -6,11 +6,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const dbPath = path.join(__dirname, 'dist', 'db.json');
 
+// CORS options
+const corsOptions = {
+  origin: 'https://re-bo-work.vercel.app', // Укажите ваш домен
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cors({
-  origin: 'https://re-bo-work.vercel.app', // Разрешите доступ только с вашего домена
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Разрешенные методы
-}));
 
 // Helper function to read and write JSON file
 const readData = () => {
