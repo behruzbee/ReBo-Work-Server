@@ -1,12 +1,13 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-
+const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const dbPath = path.join(__dirname, 'dist', 'db.json');
 
 app.use(express.json());
+app.use(cors());
 
 // Helper function to read and write JSON file
 const readData = () => {
