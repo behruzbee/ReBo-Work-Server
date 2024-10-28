@@ -8,10 +8,7 @@ const dbPath = path.join(__dirname, 'dist', 'db.json')
 
 // CORS options
 const corsOptions = {
-  origin: [
-    'https://re-bo-work.vercel.app',
-    'https://re-bo-work-fezpplj3s-behruzs-projects-73920d36.vercel.app'
-  ],
+  origin: "*",
   methods: 'GET,POST',
   credentials: true
 }
@@ -19,30 +16,33 @@ const corsOptions = {
 app.use(cors(corsOptions))
 app.use(express.json())
 
-// Helper function to read and write JSON file
-const readData = () => {
+const readData = async () => {
   try {
-    const data = fs.readFileSync(dbPath)
-    return JSON.parse(data)
+    const data = await fs.promises.readFile(dbPath, 'utf-8');
+    return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading data:', error)
-    return { workers: [] }
+    console.error('Error reading data:', error);
+    return { workers: [] };
   }
-}
+};
 
-const writeData = (data) => {
+const writeData = async (data) => {
   try {
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2))
+    await fs.promises.writeFile(dbPath, JSON.stringify(data, null, 2));
   } catch (error) {
-    console.error('Error writing data:', error)
+    console.error('Error writing data:', error);
   }
-}
+};
 
 // Get all workers
-app.get('/api/workers', (req, res) => {
-  const data = readData()
-  res.json(data.workers)
-})
+app.get('/api/workers', async (req, res) => {
+  try {
+    const data = await readData();
+    res.json(data.workers);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // Get worker by ID
 app.get('/api/workers/:id', (req, res) => {
@@ -55,14 +55,18 @@ app.get('/api/workers/:id', (req, res) => {
 })
 
 // Create new worker
-app.post('/api/workers', (req, res) => {
-  const newWorker = req.body
-  const data = readData()
-  newWorker.id = Date.now().toString()
-  data.workers.push(newWorker)
-  writeData(data)
-  res.status(201).json(newWorker)
-})
+app.post('/api/workers', async (req, res) => {
+  const { name, age, position } = req.body;
+  if (!name || !age || !position) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  const data = await readData();
+  const newWorker = { ...req.body, id: Date.now().toString() };
+  data.workers.push(newWorker);
+  await writeData(data);
+  res.status(201).json(newWorker);
+});
 
 // Update a worker
 app.put('/api/workers/:id', (req, res) => {
